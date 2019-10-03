@@ -17,8 +17,10 @@ import java.util.List;
 
 public interface PostDao {
     public void addPost(Post post);
-    public List<Post> getPosts();
+    public List<Post> getPosts(int currentPageNumber,int numberOfRows); //using to pagination
     public List<Post> findById(int id);
     public void editPost(int id,Post post);
     public void deletePost(int id);
+    public int getNumberOfRows(); //return number of rows in the Post table
+    public List<Post> getAllPosts();
 }

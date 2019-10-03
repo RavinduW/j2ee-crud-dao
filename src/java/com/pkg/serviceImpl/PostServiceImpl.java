@@ -25,8 +25,8 @@ public class PostServiceImpl implements PostService {
         pd.addPost(post);
     }
     
-    public List<Post> getPosts(){
-        return pd.getPosts();
+    public List<Post> getPosts(int currentPageNumber,int numberOfRows){
+        return pd.getPosts(currentPageNumber,numberOfRows);
     }
     
     public List<Post> findById(int id){
@@ -39,6 +39,14 @@ public class PostServiceImpl implements PostService {
     
     public void deletePost(int id){
         pd.deletePost(id);
+    }
+    
+    public int getNumberOfRows(){
+        return pd.getNumberOfRows();
+    }
+    
+    public List<Post> getAllPosts(){
+        return pd.getAllPosts();
     }
     
 }

@@ -28,11 +28,11 @@ public class ConnectionManager {
     public static Connection getConnection() throws SQLException{
         
         try {
-            connectionUrl = "jdbc:mysql://localhost:3306/crud";
+            connectionUrl = "jdbc:mysql://localhost:3306/crud?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
             username = "root";
             password = "";
             
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
             
             con = DriverManager.getConnection(connectionUrl,username,password);
             

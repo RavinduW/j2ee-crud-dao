@@ -61,14 +61,57 @@ public class PostDaoImpl implements PostDao {
         }
     }//addPost method
     
-    public List<Post> getPosts(){
+    public int getNumberOfRows(){
+        int result = 0;
+        String query = "SELECT COUNT(*) FROM posts";
+        ResultSet rs = null;
+        
+        try{
+            
+            currentConnection = ConnectionManager.getConnection();
+            rs = currentConnection.prepareStatement(query).executeQuery();
+            
+            if(rs.next()){
+                result = rs.getInt("count(*)");
+            }
+            
+            //System.out.println(rs);
+        }catch(Exception e){
+            System.out.println(e);
+        }finally{
+            if(currentConnection != null){
+                try{
+                    currentConnection.close();
+                }catch(Exception e){
+                    System.out.println(e);
+                }
+            }
+                        
+            if(rs != null){
+                try{
+                    rs.close();
+                }catch(Exception e){
+                    System.out.println(e);
+                }
+            }
+        }
+        
+        return result;
+    }//getNumberOfRows method
+    
+    public List<Post> getPosts(int currentPageNumber,int numberOfRows){
        ResultSet rs = null;
+       PreparedStatement ps = null;
        List <Post> posts = new LinkedList<>();
-       String query = "SELECT * FROM posts";
-       
+       String query = "SELECT * FROM posts ORDER BY id LIMIT ?,?";
+       int start = currentPageNumber * numberOfRows - numberOfRows;//get the starting index by this calculation
+       System.out.println(currentPageNumber);   
        try{
            currentConnection = ConnectionManager.getConnection();
-           rs = currentConnection.prepareStatement(query).executeQuery();
+           ps = currentConnection.prepareStatement(query);
+           ps.setInt(1, start);
+           ps.setInt(2, numberOfRows);
+           rs = ps.executeQuery();
            
            while(rs.next()){
                Post p = new Post(rs.getInt(1),rs.getString(2),rs.getString(3));
@@ -87,6 +130,13 @@ public class PostDaoImpl implements PostDao {
            if(rs != null){
                try{
                    rs.close();
+               }catch(Exception e){
+                   System.out.println(e);
+               }
+           }
+           if(ps != null){
+               try{
+                   ps.close();
                }catch(Exception e){
                    System.out.println(e);
                }
@@ -210,5 +260,49 @@ public class PostDaoImpl implements PostDao {
             }
         }
     }//deletePost method
+    
+    public List<Post> getAllPosts(){
+       
+        ResultSet rs = null;
+        PreparedStatement ps = null;
+        List <Post> posts = new LinkedList<>();
+        String query = "SELECT * FROM posts";
+       
+        try{
+           currentConnection = ConnectionManager.getConnection();
+           ps = currentConnection.prepareStatement(query);  
+           rs = ps.executeQuery();
+           
+           while(rs.next()){
+               Post p = new Post(rs.getInt(1),rs.getString(2),rs.getString(3));
+               posts.add(p); 
+           } 
+        }catch(Exception e){
+            System.out.println(e);
+        }finally{
+           if(currentConnection != null){
+               try{
+                   currentConnection.close();
+               }catch(Exception e){
+                   System.out.println(e);
+               }
+           }
+           if(rs != null){
+               try{
+                   rs.close();
+               }catch(Exception e){
+                   System.out.println(e);
+               }
+           }
+           if(ps != null){
+               try{
+                   ps.close();
+               }catch(Exception e){
+                   System.out.println(e);
+               }
+           }           
+        }
+        return posts;
+    }
     
 }//PostDaoImpl class

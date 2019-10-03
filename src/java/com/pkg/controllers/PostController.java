@@ -35,8 +35,32 @@ public class PostController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        int currentPageNumber,numberOfRows;
+        
+        if(request.getParameter("currentPageNumber") != null && request.getParameter("numberOfRows") != null){
+            currentPageNumber = Integer.parseInt(request.getParameter("currentPageNumber"));
+            numberOfRows = Integer.parseInt(request.getParameter("numberOfRows"));; 
+        }else{
+            currentPageNumber = 1;
+            numberOfRows = 5;
+        }
+        
         PostService ps = new PostServiceImpl();
-        request.setAttribute("AllPosts",ps.getPosts()); //set value for AllPosts variable
+        int rows = ps.getNumberOfRows();
+        System.out.println("numberOfRows"+rows);
+        int numberOfPages = (int) Math.ceil((double)rows / (double)numberOfRows);
+        System.out.println("numberOfPages"+numberOfPages);
+        //System.out.println((int)Math.ceil((double)11/(double)5));
+//        if (numberOfPages % numberOfRows < 0) {
+//            numberOfPages++;
+//            System.out.println("++"+numberOfPages);
+//        }
+        System.out.println("currentPageNumber"+currentPageNumber);
+        request.setAttribute("numberOfPages", numberOfPages);
+        request.setAttribute("currentPageNumber", currentPageNumber);
+        request.setAttribute("numberOfRows", numberOfRows);
+        request.setAttribute("AllPosts",ps.getPosts(currentPageNumber,numberOfRows)); //set value for AllPosts variable
         RequestDispatcher rd = request.getRequestDispatcher("AllPosts.jsp"); //return the jsp
         rd.forward(request, response);
     }

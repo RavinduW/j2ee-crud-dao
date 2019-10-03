@@ -8,6 +8,18 @@
         <servlet-name>PostEditController</servlet-name>
         <servlet-class>com.pkg.controllers.PostEditController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RecordsController</servlet-name>
+        <servlet-class>com.pkg.controllers.RecordsController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PdfDownloadController</servlet-name>
+        <servlet-class>com.pkg.controllers.PdfDownloadController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ExcelDownloadController</servlet-name>
+        <servlet-class>com.pkg.controllers.ExcelDownloadController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PostController</servlet-name>
         <url-pattern>/PostController</url-pattern>
@@ -15,6 +27,18 @@
     <servlet-mapping>
         <servlet-name>PostEditController</servlet-name>
         <url-pattern>/PostEditController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RecordsController</servlet-name>
+        <url-pattern>/RecordsController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PdfDownloadController</servlet-name>
+        <url-pattern>/PdfDownloadController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ExcelDownloadController</servlet-name>
+        <url-pattern>/ExcelDownloadController</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
