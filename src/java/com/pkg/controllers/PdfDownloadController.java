@@ -27,7 +27,7 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
  */
 public class PdfDownloadController extends HttpServlet {
 
-    //private String DOWNLOAD_FILE_NAME = "postReport.pdf"; //file name of the downloadable file
+    private String DOWNLOAD_FILE_NAME = "postReport.pdf"; //file name of the downloadable file
     private String FILE_TYPE = "application/pdf"; //file type of the file(pdf)
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,7 +40,6 @@ public class PdfDownloadController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
         try {
            generatePdfReport(request,response); //generate and download 
         }catch(Exception e){
@@ -91,42 +90,52 @@ public class PdfDownloadController extends HttpServlet {
     
     List<Post> postData = new ArrayList<>();
     String reportPath;
-    OutputStream outputStream;
+    OutputStream outputStream = null;
     JasperReport jasperReport;
     JasperDesign jasperDesign;
     JRDataSource reportSource;
-    String logoFilePath;
     Map reportParameters;
     PostService ps = new PostServiceImpl();
     
     try {
 
-      //reportPath = request.getServletContext().getRealPath("reports") + "\\report1.jrxml";
-      reportPath = "D:\\Repositories\\j2ee-crud-dao\\web\\reports\\report1.jrxml";
-      logoFilePath = "D:\\Repositories\\j2ee-crud-dao\\web\\reports\\index.jpg";
+      reportPath = request.getServletContext().getRealPath("/reports") + "\\report1.jrxml";
 
       reportParameters = new HashMap();
-      reportParameters.put("paramLogFilePath", "Posts");
+      reportParameters.put("title", "Post Feeds");
 
       jasperDesign = JRXmlLoader.load(reportPath);
       jasperReport = JasperCompileManager.compileReport(jasperDesign);
 
       postData = ps.getAllPosts();
-      reportSource = new JRBeanCollectionDataSource(postData);
+      reportSource = new JRBeanCollectionDataSource(postData); //set the database values to the reportSource
 
+      //byteStream
       byte[] byteStream;
       byteStream = JasperRunManager.runReportToPdf(jasperReport,reportParameters, reportSource);
-
-      outputStream = response.getOutputStream();
-      //response.setHeader("Content-Disposition", "inline, filename=" + DOWNLOAD_FILE_NAME);
+      
+      //response
+      response.setHeader("Content-Disposition", "attachement; filename=" + DOWNLOAD_FILE_NAME);
       response.setContentType(FILE_TYPE);
       response.setContentLength(byteStream.length);
+      
+      //outputstream
+      outputStream = response.getOutputStream();
+     
+      //byteStream = data, 0 = starting offset, byteStream.length = length
       outputStream.write(byteStream, 0, byteStream.length);
 
     } catch (JRException ex) {
       Logger.getLogger(PdfDownloadController.class.getName()).log(Level.SEVERE, null, ex);
     } catch (Exception e) {
       e.printStackTrace();
+    }finally{   
+        try {
+            outputStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(PdfDownloadController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+       
     }
   }
     

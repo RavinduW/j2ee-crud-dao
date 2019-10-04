@@ -5,12 +5,35 @@
  */
 package com.pkg.controllers;
 
+import com.pkg.models.Post;
+import com.pkg.serviceImpl.PostServiceImpl;
+import com.pkg.services.PostService;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JasperRunManager;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 /**
  *
@@ -18,6 +41,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ExcelDownloadController extends HttpServlet {
 
+    private String DOWNLOAD_FILE_NAME = "postReport.xlsx"; //file name of the downloadable file
+    private String FILE_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -30,18 +55,11 @@ public class ExcelDownloadController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ExcelDownloadController</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ExcelDownloadController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        
+        try {
+            generateExcelReport(request,response);
+        }catch(Exception e){
+            System.out.println("Exception occured in ExcelDownloadController => "+e);
         }
     }
 
@@ -83,5 +101,57 @@ public class ExcelDownloadController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+    
+    public void generateExcelReport(HttpServletRequest request,HttpServletResponse response) throws IOException{
+        
+        try {
+            //variables
+            PostService ps = new PostServiceImpl();
+            List<Post> postData = new ArrayList<>();
+            String reportPath;
+            OutputStream outputStream;
+            JasperReport jasperReport;
+            JasperDesign jasperDesign;
+            JRDataSource reportSource;
+            Map reportParameters;
+            JasperPrint jasperPrint = null;
+            
+            postData = ps.getAllPosts(); //get the data
+            reportSource = new JRBeanCollectionDataSource(postData); //set the database values to the reportSource
+            reportPath = request.getServletContext().getRealPath("/reports") + "\\report1.jrxml";
+            
+            reportParameters = new HashMap();
+            reportParameters.put("title", "Post Feeds");
+            
+            jasperDesign = JRXmlLoader.load(reportPath);
+            jasperReport = JasperCompileManager.compileReport(jasperDesign);
+            
+            jasperPrint = JasperFillManager.fillReport(jasperReport, reportParameters,reportSource );//fill the report
+            
+            //response
+            response.setHeader("Content-Disposition", "attachement; filename=" + DOWNLOAD_FILE_NAME);
+            response.setContentType(FILE_TYPE);
+            response.setContentLength(4096);
+            
+            //outputstream
+            outputStream = response.getOutputStream();
+            
+            //export the excel file
+            JRXlsxExporter exporterXLS = new JRXlsxExporter();
+            exporterXLS.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint);
+            exporterXLS.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.FALSE);
+            exporterXLS.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
+            exporterXLS.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, Boolean.FALSE);
+            exporterXLS.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
+            exporterXLS.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, outputStream);
+            exporterXLS.setParameter(JRXlsExporterParameter.OUTPUT_FILE_NAME, DOWNLOAD_FILE_NAME);
+            exporterXLS.setParameter(JRXlsExporterParameter.IS_AUTO_DETECT_CELL_TYPE, Boolean.TRUE); ;
+            exporterXLS.exportReport();   
+                    
+        } catch (JRException ex) {
+            Logger.getLogger(ExcelDownloadController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+ 
+    }
 
 }
